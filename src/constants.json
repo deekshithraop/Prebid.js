@@ -11,6 +11,11 @@
   },
   "REPO_AND_VERSION": "%%REPO_AND_VERSION%%",
   "DEBUG_MODE": "pbjs_debug",
+  "LOG_LEVEL": "",
+  "LOG_LEVEL_DEBUG": "DEBUG",
+  "LOG_LEVEL_WARN": "WARN",
+  "LOG_LEVEL_ERROR": "ERROR",
+  "LOG_LEVEL_NONE": "NONE",
   "STATUS": {
     "GOOD": 1,
     "NO_BID": 2
