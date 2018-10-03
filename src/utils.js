@@ -271,25 +271,25 @@ exports.getTopWindowReferrer = function() {
  * Wrappers to console.(log | info | warn | error). Takes N arguments, the same as the native methods
  */
 exports.logMessage = function () {
-  if (debugTurnedOn() && consoleLogExists) {
+  if (shouldLog(CONSTANTS.LOG_LEVEL_DEBUG) && consoleLogExists) {
     console.log.apply(console, decorateLog(arguments, 'MESSAGE:'));
   }
 };
 
 exports.logInfo = function () {
-  if (debugTurnedOn() && consoleInfoExists) {
+  if (shouldLog(CONSTANTS.LOG_LEVEL_DEBUG) && consoleInfoExists) {
     console.info.apply(console, decorateLog(arguments, 'INFO:'));
   }
 };
 
 exports.logWarn = function () {
-  if (debugTurnedOn() && consoleWarnExists) {
+  if (shouldLog(CONSTANTS.LOG_LEVEL_WARN) && consoleWarnExists) {
     console.warn.apply(console, decorateLog(arguments, 'WARNING:'));
   }
 };
 
 exports.logError = function () {
-  if (debugTurnedOn() && consoleErrorExists) {
+  if (shouldLog(CONSTANTS.LOG_LEVEL_ERROR) && consoleErrorExists) {
     console.error.apply(console, decorateLog(arguments, 'ERROR:'));
   }
 };
@@ -308,9 +308,51 @@ function hasConsoleLogger() {
 
 exports.hasConsoleLogger = hasConsoleLogger;
 
+var shouldLog = function(type) {
+  let enable = debugTurnedOn();
+
+  if(!enable) {
+    return false;
+  }
+
+  const logLevel = config.getConfig('logLevel');
+
+  if(logLevel.length > 0) {
+
+    if (logLevel.includes(CONSTANTS.LOG_LEVEL_NONE)) {
+      enable = false;
+
+    } else {
+      enable = logLevel.includes(type);
+    }
+
+  }
+
+  return enable;
+}
+
+var getlogLevelFromURL = function() {
+
+  const logLevel = getParameterByName(CONSTANTS.LOG_LEVEL);
+
+  if(logLevel) {
+    try {
+      let parsedLogLevel = JSON.parse(decodeURIComponent(logLevel));
+
+      config.setConfig({ logLevel: parsedLogLevel})
+
+    } catch(e) {
+      exports.logError("Invalid loglevel config, Should be of type ['DEBUG','WARN','ERROR','NONE']")
+    }
+  }
+}
+
 var debugTurnedOn = function () {
   if (config.getConfig('debug') === false && _loggingChecked === false) {
     const debug = getParameterByName(CONSTANTS.DEBUG_MODE).toUpperCase() === 'TRUE';
+
+    getlogLevelFromURL();
+
     config.setConfig({ debug });
     _loggingChecked = true;
   }

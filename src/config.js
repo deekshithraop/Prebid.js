@@ -12,8 +12,11 @@ import find from 'core-js/library/fn/array/find';
 import includes from 'core-js/library/fn/array/includes';
 import { createHook } from 'src/hook';
 const utils = require('./utils');
+const CONSTANTS = require('./constants');
 
 const DEFAULT_DEBUG = false;
+const DEFAULT_LOGLEVEL = [];
+const LOG_LEVEL_VALUES = [CONSTANTS.LOG_LEVEL_DEBUG,CONSTANTS.LOG_LEVEL_WARN,CONSTANTS.LOG_LEVEL_ERROR,CONSTANTS.LOG_LEVEL_NONE];
 const DEFAULT_BIDDER_TIMEOUT = 3000;
 const DEFAULT_PUBLISHER_DOMAIN = window.location.origin;
 const DEFAULT_COOKIESYNC_DELAY = 100;
@@ -59,11 +62,27 @@ export function newConfig() {
     config = {
       // `debug` is equivalent to legacy `pbjs.logging` property
       _debug: DEFAULT_DEBUG,
+      _logLevel: DEFAULT_LOGLEVEL,
+
       get debug() {
         return this._debug;
       },
       set debug(val) {
         this._debug = val;
+      },
+
+      get logLevel() {
+        return this._logLevel;
+      },
+      set logLevel(val) {
+
+        if(Array.isArray(val) && val.length <= 4) {
+          let parsedVal = val.filter((value) => LOG_LEVEL_VALUES.includes(value));
+          this._logLevel = parsedVal;
+        } else {
+          utils.logError("Invalid loglevel config, Should be of type ['DEBUG','WARN','ERROR','NONE']");
+        }
+
       },
 
       // default timeout for all bids
@@ -230,7 +249,7 @@ export function newConfig() {
     topics.forEach(topic => {
       let option = options[topic];
 
-      if (typeof defaults[topic] === 'object' && typeof option === 'object') {
+      if (typeof defaults[topic] === 'object' && typeof option === 'object' && !Array.isArray(option)) {
         option = Object.assign({}, defaults[topic], option);
       }
 
